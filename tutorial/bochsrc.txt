@@ -122,7 +122,8 @@ romimage: file=/usr/share/bochs/BIOS-bochs-latest
 #  2.2.6 2.1Ghz Athlon XP with Linux 2.6/g++ 3.4         12 to 15 Mips
 #  2.0.1 1.6Ghz Intel P4 with Win2000/g++ 3.3             5 to  7 Mips
 #=======================================================================
-cpu: count=1, ips=500000, reset_on_triple_fault=1, ignore_bad_msrs=1, msrs="msrs.def"
+# cpu: count=1, ips=500000, reset_on_triple_fault=1, ignore_bad_msrs=1, msrs="msrs.def"
+cpu: ips=500000
 
 #=======================================================================
 # CPUID:
@@ -193,9 +194,9 @@ cpu: count=1, ips=500000, reset_on_triple_fault=1, ignore_bad_msrs=1, msrs="msrs
 #  Determine whether to limit maximum CPUID function to 3. This mode is
 #  required to workaround WinNT installation and boot issues.
 #=======================================================================
-cpuid: mmx=1, sep=1, sse=sse4_2, xapic=1, aes=1, movbe=1, xsave=1
-cpuid: stepping=5
-cpuid: cpuid_limit_winnt=0
+# cpuid: mmx=1, sep=1, sse=sse4_2, xapic=1, aes=1, movbe=1, xsave=1
+# cpuid: stepping=5
+# cpuid: cpuid_limit_winnt=0
 
 #=======================================================================
 # MEMORY
@@ -214,7 +215,8 @@ cpuid: cpuid_limit_winnt=0
 # used all allocated host memory and wants more.
 #
 #=======================================================================
-memory: guest=512, host=256
+# memory: guest=512, host=256
+megs: 32
 
 #=======================================================================
 # OPTROMIMAGE[1-4]:
@@ -251,7 +253,7 @@ vgaromimage: file=/usr/share/vgabios/vgabios.bin
 # values are 'vbe' for Bochs VBE and 'cirrus' for Cirrus SVGA support.
 #=======================================================================
 #vga: extension=cirrus
-vga: extension=vbe
+# vga: extension=vbe
 
 #=======================================================================
 # FLOPPYA:
@@ -313,10 +315,10 @@ floppya: 1_44=/dev/loop0, status=inserted
 #   ata2: enabled=1, ioaddr1=0x1e8, ioaddr2=0x3e0, irq=11
 #   ata3: enabled=1, ioaddr1=0x168, ioaddr2=0x360, irq=9
 #=======================================================================
-ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
-ata1: enabled=1, ioaddr1=0x170, ioaddr2=0x370, irq=15
-ata2: enabled=0, ioaddr1=0x1e8, ioaddr2=0x3e0, irq=11
-ata3: enabled=0, ioaddr1=0x168, ioaddr2=0x360, irq=9
+#ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+#ata1: enabled=1, ioaddr1=0x170, ioaddr2=0x370, irq=15
+#ata2: enabled=0, ioaddr1=0x1e8, ioaddr2=0x3e0, irq=11
+#ata3: enabled=0, ioaddr1=0x168, ioaddr2=0x360, irq=9
 
 #=======================================================================
 # ATA[0-3]-MASTER, ATA[0-3]-SLAVE
@@ -372,7 +374,7 @@ ata3: enabled=0, ioaddr1=0x168, ioaddr2=0x360, irq=9
 #ata0-master: type=disk, mode=flat, path="$HOME/.bochs/guest.hd0", cylinders=#cylinders#, heads=16, spt=63
 #ata0-master: type=disk, mode=flat, path="c.img", cylinders=0 # autodetect
 #ata0-slave: type=disk, mode=vvfat, path=/bochs/images/vvfat, journal=vvfat.redolog
-ata0-slave: type=cdrom, path=/dev/cdrom, status=inserted
+# ata0-slave: type=cdrom, path=/dev/cdrom, status=inserted
 
 #=======================================================================
 # BOOT:
@@ -385,7 +387,7 @@ ata0-slave: type=cdrom, path=/dev/cdrom, status=inserted
 #   boot: network, disk
 #   boot: cdrom, floppy, disk
 #=======================================================================
-#boot: floppy
+# boot: floppy
 #boot: disk
 #boot: cdrom
 boot: a
@@ -437,7 +439,7 @@ clock: sync=realtime
 #   floppy_bootsig_check: disabled=0
 #   floppy_bootsig_check: disabled=1
 #=======================================================================
-floppy_bootsig_check: disabled=0
+# floppy_bootsig_check: disabled=0
 
 #=======================================================================
 # LOG:
@@ -492,10 +494,10 @@ log: bochsout.txt
 # cause bochs to become unstable.  The panic is a "graceful exit," so
 # if you disable it you may get a spectacular disaster instead.
 #=======================================================================
-panic: action=ask
-error: action=report
-info: action=report
-debug: action=ignore
+# panic: action=ask
+# error: action=report
+# info: action=report
+# debug: action=ignore
 #pass: action=fatal
 
 #=======================================================================
@@ -508,7 +510,7 @@ debug: action=ignore
 #=======================================================================
 #debugger_log: /dev/null
 #debugger_log: debugger.out
-debugger_log: -
+# debugger_log: -
 
 #=======================================================================
 # COM1, COM2, COM3, COM4:
@@ -544,7 +546,7 @@ debugger_log: -
 #   com4: enabled=1, mode=pipe-client, dev=\\.\pipe\mypipe
 #   com4: enabled=1, mode=pipe-server, dev=\\.\pipe\mypipe
 #=======================================================================
-com1: enabled=1, mode=term, dev=/dev/ttyS0
+# com1: enabled=1, mode=term, dev=/dev/ttyS0
 
 
 #=======================================================================
@@ -560,7 +562,7 @@ com1: enabled=1, mode=term, dev=/dev/ttyS0
 #   parport2: enabled=1, file="/dev/lp0"
 #   parport1: enabled=0
 #=======================================================================
-parport1: enabled=1, file="/dev/lp0"
+# parport1: enabled=1, file="/dev/lp0"
 
 #=======================================================================
 # SB16:
@@ -598,7 +600,7 @@ parport1: enabled=1, file="/dev/lp0"
 #   sb16: midimode=1, midi="", wavemode=1, wave=""           # win32
 #   sb16: midimode=1, midi=alsa:128:0, wavemode=1, wave=alsa # Linux with ALSA
 #=======================================================================
-sb16: midimode=1, midi=/dev/midi00, wavemode=1, wave=/dev/dsp, loglevel=2, log=/dev/stdout, dmatimer=600000
+# sb16: midimode=1, midi=/dev/midi00, wavemode=1, wave=/dev/dsp, loglevel=2, log=/dev/stdout, dmatimer=600000
 
 #=======================================================================
 # VGA_UPDATE_INTERVAL:
@@ -611,7 +613,7 @@ sb16: midimode=1, midi=/dev/midi00, wavemode=1, wave=/dev/dsp, loglevel=2, log=/
 # Examples:
 #   vga_update_interval: 250000
 #=======================================================================
-vga_update_interval: 300000
+# vga_update_interval: 300000
 
 # using for Winstone '98 tests
 #vga_update_interval:  100000
@@ -623,7 +625,7 @@ vga_update_interval: 300000
 # Examples:
 #   keyboard_serial_delay: 200
 #=======================================================================
-keyboard_serial_delay: 250
+# keyboard_serial_delay: 250
 
 #=======================================================================
 # KEYBOARD_PASTE_DELAY:
@@ -640,7 +642,7 @@ keyboard_serial_delay: 250
 # Examples:
 #   keyboard_paste_delay: 100000
 #=======================================================================
-keyboard_paste_delay: 100000
+# keyboard_paste_delay: 100000
 
 #=======================================================================
 # MOUSE:
@@ -686,7 +688,7 @@ mouse: enabled=0
 #   private_colormap: enabled=1
 #   private_colormap: enabled=0
 #=======================================================================
-private_colormap: enabled=0
+# private_colormap: enabled=0
 
 #=======================================================================
 # ne2k: NE2000 compatible ethernet adapter
@@ -797,7 +799,7 @@ private_colormap: enabled=0
 # Example:
 #   i440fxsupport: enabled=1, slot1=pcivga, slot2=ne2k
 #=======================================================================
-i440fxsupport: enabled=1
+# i440fxsupport: enabled=1
 
 #=======================================================================
 # USB_UHCI:
