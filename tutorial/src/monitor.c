@@ -1,3 +1,15 @@
+// monitor.c -- Defines functions for writing to the monitor.
+//             heavily based on Bran's kernel development tutorials,
+//             but rewritten for JamesM's kernel tutorials.
+
+#include "monitor.h"
+
+// The VGA framebuffer starts at 0xB8000.
+u16int *video_memory = (u16int *)0xB8000;
+// Stores the cursor position.
+u8int cursor_x = 0;
+u8int cursor_y = 0;
+
 // Updates the hardware cursor.
 static void move_cursor()
 {
