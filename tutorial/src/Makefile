@@ -7,7 +7,7 @@ TARGET := i586-elf
 CC := $(TARGET)-gcc
 LD := $(TARGET)-ld
 
-SOURCES=boot.o main.o monitor.o common.o
+SOURCES=boot.o main.o monitor.o common.o gdt.o descriptor_tables.o interrupt.o isr.o
 
 CFLAGS=-fno-builtin -fno-stack-protector
 LDFLAGS=-Tlink.ld
