@@ -12,6 +12,10 @@ int main(struct multiboot *mboot_ptr)
 
     asm volatile("int $0x3");
     asm volatile("int $0x4");
+
+    asm volatile("sti"); // need to enable interrupts
+
+    init_timer(50); //frequency = 50Hz
     
     return 0;
 
