@@ -120,3 +120,18 @@ extern void panic_assert(const char *file, u32int line, const char *desc)
     for(;;);
 }
 
+int strlen( const char *str)
+{
+  int result = 0;
+  u32int *i = (u32int *)str;
+
+  for (;;) {
+    if (!(*i & 0x000000ff)) return result;    
+    if (!(*i & 0x0000ff00)) return result + 1;
+    if (!(*i & 0x00ff0000)) return result + 2;
+    if (!(*i & 0xff000000)) return result + 3;
+    result += 4;
+    i++; /* Advance 4 bytes */ 
+  }
+}
+
