@@ -7,16 +7,15 @@ int main(struct multiboot *mboot_ptr)
     init_descriptor_tables();
     // Initialise the screen (by clearing it)
     monitor_clear();
+
+    initialise_paging();
+
     // Write out a sample string
-    monitor_write("Hello, world!\n");
+    monitor_write("Hello, paging world!\n");
 
-    asm volatile("int $0x3");
-    asm volatile("int $0x4");
+    u32int *ptr = (u32int*)0xA0000000;
+    u32int do_page_fault = *ptr; 
 
-    asm volatile("sti"); // need to enable interrupts
-
-    init_timer(50); //frequency = 50Hz
-    
     return 0;
 
 } 
