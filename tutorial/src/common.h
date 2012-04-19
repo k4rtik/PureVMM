@@ -24,5 +24,3 @@ extern void panic(const char *message, const char *file, u32int line);
 extern void panic_assert(const char *file, u32int line, const char *desc);
 
 #endif
-
-int strlen( const char *str);

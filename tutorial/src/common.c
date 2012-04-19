@@ -120,7 +120,7 @@ extern void panic_assert(const char *file, u32int line, const char *desc)
     for(;;);
 }
 
-int strlen( const char *str)
+int strlen(const char *str)
 {
   int result = 0;
   u32int *i = (u32int *)str;

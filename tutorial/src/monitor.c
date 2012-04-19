@@ -89,6 +89,16 @@ void monitor_put(char c)
    if (c == 0x08 && cursor_x)
    {
        cursor_x--;
+       monitor_put(' ');
+       cursor_x--;
+   }
+   else if (c == 0x08 && cursor_y)
+   {
+       cursor_y--;
+       cursor_x=79;
+       monitor_put(' ');
+       cursor_y--;
+       cursor_x=79;
    }
 
    // Handle a tab by increasing the cursor's X, but only to a point

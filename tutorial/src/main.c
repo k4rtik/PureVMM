@@ -2,13 +2,15 @@
 // Made for JamesM's tutorials
 
 #include "common.h"
-#include "stdarg.h"
 
 int main(struct multiboot *mboot_ptr)
 {
 
     // Initialise all the ISRs and segmentation
     init_descriptor_tables();
+
+    keyboard_install();
+
     // Initialise the screen (by clearing it)
     monitor_clear();
 
@@ -35,6 +37,8 @@ int main(struct multiboot *mboot_ptr)
     monitor_write("\n");
  
     printf("a = %X, b = %X, \nc = %X, d = %X\n%d", a,b,c,d, 345);
+
+    asm volatile ("sti");
 
     return 0;
  
