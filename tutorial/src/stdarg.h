@@ -18,12 +18,11 @@ typedef char *va_list;
   AP = ((char *) &(LASTARG) + __va_rounded_size (LASTARG)))
 #endif
 
-void va_end (va_list);		/* Defined in gnulib */
+void va_end(va_list);		/* Defined in gnulib */
 #define va_end(AP)
 
 #define va_arg(AP, TYPE)						\
  (AP += __va_rounded_size (TYPE),					\
   *((TYPE *) (AP - __va_rounded_size (TYPE))))
 
-#endif /* _STDARG_H */
-
+#endif				/* _STDARG_H */

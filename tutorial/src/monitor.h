@@ -15,4 +15,4 @@ void monitor_clear();
 // Output a null-terminated ASCII string to the monitor.
 void monitor_write(char *c);
 
-#endif // MONITOR_H
+#endif				// MONITOR_H
