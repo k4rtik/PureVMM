@@ -4,10 +4,6 @@
 #include "common.h"
 #include "stdarg.h"
 
-void vout(char *string, char *fmt,...);
-
-char fmt1[] = "%s %s %s\n";
-
 int main(struct multiboot *mboot_ptr)
 {
 
@@ -38,20 +34,8 @@ int main(struct multiboot *mboot_ptr)
 
     monitor_write("\n");
  
-    char string[100];
- 
-    vout(string, fmt1, "Sat", "Sun", "Mon");
-    monitor_write(string);
+    printf("a = %X, b = %X, \nc = %X, d = %X\n%d", a,b,c,d, 345);
+
     return 0;
  
 }
-
-void vout(char *string, char *fmt,...)
-{
-    va_list arg_ptr;
-  
-    va_start(arg_ptr, fmt);
-    vsprintf(string, fmt, arg_ptr);
-    va_end(arg_ptr);
-} 
-  

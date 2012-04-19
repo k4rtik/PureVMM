@@ -447,4 +447,15 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 	return str-buf;
 }
 
+int printf(char *fmt, ...)
+{
+	char *p;	
+	int count = 0;
+	va_list arg_ptr;
+	va_start(arg_ptr, fmt);
+	count += vsprintf(p, fmt, arg_ptr);
+	va_end(arg_ptr);
+	monitor_write(p);
 
+	return count;
+}
