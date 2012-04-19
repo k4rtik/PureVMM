@@ -38,6 +38,16 @@ void memset(u8int *dest, u8int val, u32int len)
     for ( ; len != 0; len--) *temp++ = val;
 }
 
+void memsetw(u16int *dest, u16int val, int len)
+{
+    /* Same as above, but this time, we're working with a 16-bit
+    *  'val' and dest pointer. Your code can be an exact copy of
+    *  the above, provided that your local variables if any, are
+    *  unsigned short */
+    u8int *temp = (u8int *)dest;
+    for ( ; len != 0; len--) *temp++ = val;
+}
+
 // Compare two strings. Should return -1 if 
 // str1 < str2, 0 if they are equal or 1 otherwise.
 int strcmp(char *str1, char *str2)
@@ -120,7 +130,7 @@ extern void panic_assert(const char *file, u32int line, const char *desc)
     for(;;);
 }
 
-int strlen( const char *str)
+int strlen(const char *str)
 {
   int result = 0;
   u32int *i = (u32int *)str;
@@ -135,3 +145,23 @@ int strlen( const char *str)
   }
 }
 
+
+/* We will use this later on for reading from the I/O ports to get data
+*  from devices such as the keyboard. We are using what is called
+*  'inline assembly' in these routines to actually do the work */
+unsigned char inportb (unsigned short _port)
+{
+    unsigned char rv;
+    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    return rv;
+}
+
+/* We will use this to write to I/O ports to send bytes to devices. This
+*  will be used in the next tutorial for changing the textmode cursor
+*  position. Again, we use some inline assembly for the stuff that simply
+*  cannot be done in C */
+/*void outportb (unsigned short _port, unsigned char _data)
+{
+    __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+}
+*/
