@@ -8,7 +8,6 @@
 /* we use this so that we can do without the ctype library */
 #define is_digit(c)	((c) >= '0' && (c) <= '9')
 
-
 #define ZEROPAD	1		/* pad with zero */
 #define SIGN	2		/* unsigned/signed long */
 #define PLUS	4		/* show plus */
@@ -22,9 +21,8 @@ int __res; \
 __asm__("divl %4":"=a" (n),"=d" (__res):"0" (n),"1" (0),"r" (base)); \
 __res; })
 
-
 // The VGA framebuffer starts at 0xB8000.
-u16int *video_memory = (u16int *)0xB8000;
+u16int *video_memory = (u16int *) 0xB8000;
 // Stores the cursor position.
 u8int cursor_x = 0;
 u8int cursor_y = 0;
@@ -32,214 +30,185 @@ u8int cursor_y = 0;
 // Updates the hardware cursor.
 static void move_cursor()
 {
-   // The screen is 80 characters wide...
-   u16int cursorLocation = cursor_y * 80 + cursor_x;
-   outb(0x3D4, 14);                  // Tell the VGA board we are setting the high cursor byte.
-   outb(0x3D5, cursorLocation >> 8); // Send the high cursor byte.
-   outb(0x3D4, 15);                  // Tell the VGA board we are setting the low cursor byte.
-   outb(0x3D5, cursorLocation);      // Send the low cursor byte.
+	// The screen is 80 characters wide...
+	u16int cursorLocation = cursor_y * 80 + cursor_x;
+	outb(0x3D4, 14);	// Tell the VGA board we are setting the high cursor byte.
+	outb(0x3D5, cursorLocation >> 8);	// Send the high cursor byte.
+	outb(0x3D4, 15);	// Tell the VGA board we are setting the low cursor byte.
+	outb(0x3D5, cursorLocation);	// Send the low cursor byte.
 }
 
 // Scrolls the text on the screen up by one line.
 static void scroll()
 {
 
-   // Get a space character with the default colour attributes.
-   u8int attributeByte = (0 /*black*/ << 4) | (15 /*white*/ & 0x0F);
-   u16int blank = 0x20 /* space */ | (attributeByte << 8);
+	// Get a space character with the default colour attributes.
+	u8int attributeByte = (0 /*black */  << 4) | (15 /*white */  & 0x0F);
+	u16int blank = 0x20 /* space */  | (attributeByte << 8);
 
-   // Row 25 is the end, this means we need to scroll up
-   if(cursor_y >= 25)
-   {
-       // Move the current text chunk that makes up the screen
-       // back in the buffer by a line
-       int i;
-       for (i = 0*80; i < 24*80; i++)
-       {
-           video_memory[i] = video_memory[i+80];
-       }
+	// Row 25 is the end, this means we need to scroll up
+	if (cursor_y >= 25) {
+		// Move the current text chunk that makes up the screen
+		// back in the buffer by a line
+		int i;
+		for (i = 0 * 80; i < 24 * 80; i++) {
+			video_memory[i] = video_memory[i + 80];
+		}
 
-       // The last line should now be blank. Do this by writing
-       // 80 spaces to it.
-       for (i = 24*80; i < 25*80; i++)
-       {
-           video_memory[i] = blank;
-       }
-       // The cursor should now be on the last line.
-       cursor_y = 24;
-   }
+		// The last line should now be blank. Do this by writing
+		// 80 spaces to it.
+		for (i = 24 * 80; i < 25 * 80; i++) {
+			video_memory[i] = blank;
+		}
+		// The cursor should now be on the last line.
+		cursor_y = 24;
+	}
 }
 
 // Writes a single character out to the screen.
 void monitor_put(char c)
 {
-   // The background colour is black (0), the foreground is white (15).
-   u8int backColour = 0;
-   u8int foreColour = 15;
+	// The background colour is black (0), the foreground is white (15).
+	u8int backColour = 0;
+	u8int foreColour = 15;
 
-   // The attribute byte is made up of two nibbles - the lower being the
-   // foreground colour, and the upper the background colour.
-   u8int  attributeByte = (backColour << 4) | (foreColour & 0x0F);
-   // The attribute byte is the top 8 bits of the word we have to send to the
-   // VGA board.
-   u16int attribute = attributeByte << 8;
-   u16int *location;
+	// The attribute byte is made up of two nibbles - the lower being the
+	// foreground colour, and the upper the background colour.
+	u8int attributeByte = (backColour << 4) | (foreColour & 0x0F);
+	// The attribute byte is the top 8 bits of the word we have to send to the
+	// VGA board.
+	u16int attribute = attributeByte << 8;
+	u16int *location;
 
-   // Handle a backspace, by moving the cursor back one space
-   if (c == 0x08 && cursor_x)
-   {
-       cursor_x--;
-       monitor_put(' ');
-       cursor_x--;
-   }
-   else if (c == 0x08 && cursor_y)
-   {
-       cursor_y--;
-       cursor_x=79;
-       monitor_put(' ');
-       cursor_y--;
-       cursor_x=79;
-   }
-
-   // Handle a tab by increasing the cursor's X, but only to a point
-   // where it is divisible by 8.
-   else if (c == 0x09)
-   {
-       cursor_x = (cursor_x+8) & ~(8-1);
-   }
-
-   // Handle carriage return
-   else if (c == '\r')
-   {
-       cursor_x = 0;
-   }
-
-   // Handle newline by moving cursor back to left and increasing the row
-   else if (c == '\n')
-   {
-       cursor_x = 0;
-       cursor_y++;
-   }
-   // Handle any other printable character.
-   else if(c >= ' ')
-   {
-       location = video_memory + (cursor_y*80 + cursor_x);
-       *location = c | attribute;
-       cursor_x++;
-   }
-
-   // Check if we need to insert a new line because we have reached the end
-   // of the screen.
-   if (cursor_x >= 80)
-   {
-       cursor_x = 0;
-       cursor_y ++;
-   }
-
-   // Scroll the screen if needed.
-   scroll();
-   // Move the hardware cursor.
-   move_cursor();
+	// Handle a backspace, by moving the cursor back one space
+	if (c == 0x08 && cursor_x) {
+		cursor_x--;
+		monitor_put(' ');
+		cursor_x--;
+	} else if (c == 0x08 && cursor_y) {
+		cursor_y--;
+		cursor_x = 79;
+		monitor_put(' ');
+		cursor_y--;
+		cursor_x = 79;
+	}
+	// Handle a tab by increasing the cursor's X, but only to a point
+	// where it is divisible by 8.
+	else if (c == 0x09) {
+		cursor_x = (cursor_x + 8) & ~(8 - 1);
+	}
+	// Handle carriage return
+	else if (c == '\r') {
+		cursor_x = 0;
+	}
+	// Handle newline by moving cursor back to left and increasing the row
+	else if (c == '\n') {
+		cursor_x = 0;
+		cursor_y++;
+	}
+	// Handle any other printable character.
+	else if (c >= ' ') {
+		location = video_memory + (cursor_y * 80 + cursor_x);
+		*location = c | attribute;
+		cursor_x++;
+	}
+	// Check if we need to insert a new line because we have reached the end
+	// of the screen.
+	if (cursor_x >= 80) {
+		cursor_x = 0;
+		cursor_y++;
+	}
+	// Scroll the screen if needed.
+	scroll();
+	// Move the hardware cursor.
+	move_cursor();
 }
 
 // Clears the screen, by copying lots of spaces to the framebuffer.
 void monitor_clear()
 {
-   // Make an attribute byte for the default colours
-   u8int attributeByte = (0 /*black*/ << 4) | (15 /*white*/ & 0x0F);
-   u16int blank = 0x20 /* space */ | (attributeByte << 8);
+	// Make an attribute byte for the default colours
+	u8int attributeByte = (0 /*black */  << 4) | (15 /*white */  & 0x0F);
+	u16int blank = 0x20 /* space */  | (attributeByte << 8);
 
-   int i;
-   for (i = 0; i < 80*25; i++)
-   {
-       video_memory[i] = blank;
-   }
+	int i;
+	for (i = 0; i < 80 * 25; i++) {
+		video_memory[i] = blank;
+	}
 
-   // Move the hardware cursor back to the start.
-   cursor_x = 0;
-   cursor_y = 0;
-   move_cursor();
+	// Move the hardware cursor back to the start.
+	cursor_x = 0;
+	cursor_y = 0;
+	move_cursor();
 }
 
 // Outputs a null-terminated ASCII string to the monitor.
 void monitor_write(char *c)
 {
-   int i = 0;
-   while (c[i])
-   {
-       monitor_put(c[i++]);
-   }
+	int i = 0;
+	while (c[i]) {
+		monitor_put(c[i++]);
+	}
 }
 
 void monitor_write_hex(u32int n)
 {
-    s32int tmp;
+	s32int tmp;
 
-    monitor_write("0x");
+	monitor_write("0x");
 
-    char noZeroes = 1;
+	char noZeroes = 1;
 
-    int i;
-    for (i = 28; i > 0; i -= 4)
-    {
-        tmp = (n >> i) & 0xF;
-        if (tmp == 0 && noZeroes != 0)
-        {
-            continue;
-        }
-    
-        if (tmp >= 0xA)
-        {
-            noZeroes = 0;
-            monitor_put (tmp-0xA+'a' );
-        }
-        else
-        {
-            noZeroes = 0;
-            monitor_put( tmp+'0' );
-        }
-    }
-  
-    tmp = n & 0xF;
-    if (tmp >= 0xA)
-    {
-        monitor_put (tmp-0xA+'a');
-    }
-    else
-    {
-        monitor_put (tmp+'0');
-    }
+	int i;
+	for (i = 28; i > 0; i -= 4) {
+		tmp = (n >> i) & 0xF;
+		if (tmp == 0 && noZeroes != 0) {
+			continue;
+		}
+
+		if (tmp >= 0xA) {
+			noZeroes = 0;
+			monitor_put(tmp - 0xA + 'a');
+		} else {
+			noZeroes = 0;
+			monitor_put(tmp + '0');
+		}
+	}
+
+	tmp = n & 0xF;
+	if (tmp >= 0xA) {
+		monitor_put(tmp - 0xA + 'a');
+	} else {
+		monitor_put(tmp + '0');
+	}
 
 }
 
 void monitor_write_dec(u32int n)
 {
 
-    if (n == 0)
-    {
-        monitor_put('0');
-        return;
-    }
+	if (n == 0) {
+		monitor_put('0');
+		return;
+	}
 
-    s32int acc = n;
-    char c[32];
-    int i = 0;
-    while (acc > 0)
-    {
-        c[i] = '0' + acc%10;
-        acc /= 10;
-        i++;
-    }
-    c[i] = 0;
+	s32int acc = n;
+	char c[32];
+	int i = 0;
+	while (acc > 0) {
+		c[i] = '0' + acc % 10;
+		acc /= 10;
+		i++;
+	}
+	c[i] = 0;
 
-    char c2[32];
-    c2[i--] = 0;
-    int j = 0;
-    while(i >= 0)
-    {
-        c2[i--] = c[j++];
-    }
-    monitor_write(c2);
+	char c2[32];
+	c2[i--] = 0;
+	int j = 0;
+	while (i >= 0) {
+		c2[i--] = c[j++];
+	}
+	monitor_write(c2);
 
 }
 
@@ -255,61 +224,68 @@ void monitor_write_dec(u32int n)
 
 static int skip_atoi(const char **s)
 {
-	int i=0;
+	int i = 0;
 
 	while (is_digit(**s))
-		i = i*10 + *((*s)++) - '0';
+		i = i * 10 + *((*s)++) - '0';
 	return i;
 }
 
-static char * number(char * str, int num, int base, int size, int precision
-	,int type)
+static char *number(char *str, int num, int base, int size, int precision,
+		    int type)
 {
-	char c,sign,tmp[36];
-	const char *digits="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	char c, sign, tmp[36];
+	const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	int i;
 
-	if (type&SMALL) digits="0123456789abcdefghijklmnopqrstuvwxyz";
-	if (type&LEFT) type &= ~ZEROPAD;
-	if (base<2 || base>36)
+	if (type & SMALL)
+		digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+	if (type & LEFT)
+		type &= ~ZEROPAD;
+	if (base < 2 || base > 36)
 		return 0;
-	c = (type & ZEROPAD) ? '0' : ' ' ;
-	if (type&SIGN && num<0) {
-		sign='-';
+	c = (type & ZEROPAD) ? '0' : ' ';
+	if (type & SIGN && num < 0) {
+		sign = '-';
 		num = -num;
 	} else
-		sign=(type&PLUS) ? '+' : ((type&SPACE) ? ' ' : 0);
-	if (sign) size--;
-	if (type&SPECIAL)
-		if (base==16) size -= 2;
-		else if (base==8) size--;
-	i=0;
-	if (num==0)
-		tmp[i++]='0';
-	else while (num!=0)
-		tmp[i++]=digits[do_div(num,base)];
-	if (i>precision) precision=i;
+		sign = (type & PLUS) ? '+' : ((type & SPACE) ? ' ' : 0);
+	if (sign)
+		size--;
+	if (type & SPECIAL)
+		if (base == 16)
+			size -= 2;
+		else if (base == 8)
+			size--;
+	i = 0;
+	if (num == 0)
+		tmp[i++] = '0';
+	else
+		while (num != 0)
+			tmp[i++] = digits[do_div(num, base)];
+	if (i > precision)
+		precision = i;
 	size -= precision;
-	if (!(type&(ZEROPAD+LEFT)))
-		while(size-->0)
+	if (!(type & (ZEROPAD + LEFT)))
+		while (size-- > 0)
 			*str++ = ' ';
 	if (sign)
 		*str++ = sign;
-	if (type&SPECIAL)
-		if (base==8)
+	if (type & SPECIAL)
+		if (base == 8)
 			*str++ = '0';
-		else if (base==16) {
+		else if (base == 16) {
 			*str++ = '0';
 			*str++ = digits[33];
 		}
-	if (!(type&LEFT))
-		while(size-->0)
+	if (!(type & LEFT))
+		while (size-- > 0)
 			*str++ = c;
-	while(i<precision--)
+	while (i < precision--)
 		*str++ = '0';
-	while(i-->0)
+	while (i-- > 0)
 		*str++ = tmp[i];
-	while(size-->0)
+	while (size-- > 0)
 		*str++ = ' ';
 	return str;
 }
@@ -318,7 +294,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 {
 	int len;
 	int i;
-	char * str;
+	char *str;
 	char *s;
 	int *ip;
 
@@ -329,24 +305,34 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 				   number of chars for from string */
 	int qualifier;		/* 'h', 'l', or 'L' for integer fields */
 
-	for (str=buf ; *fmt ; ++fmt) {
+	for (str = buf; *fmt; ++fmt) {
 		if (*fmt != '%') {
 			*str++ = *fmt;
 			continue;
 		}
-			
+
 		/* process flags */
 		flags = 0;
-		repeat:
-			++fmt;		/* this also skips first '%' */
-			switch (*fmt) {
-				case '-': flags |= LEFT; goto repeat;
-				case '+': flags |= PLUS; goto repeat;
-				case ' ': flags |= SPACE; goto repeat;
-				case '#': flags |= SPECIAL; goto repeat;
-				case '0': flags |= ZEROPAD; goto repeat;
-				}
-		
+ repeat:
+		++fmt;		/* this also skips first '%' */
+		switch (*fmt) {
+		case '-':
+			flags |= LEFT;
+			goto repeat;
+		case '+':
+			flags |= PLUS;
+			goto repeat;
+		case ' ':
+			flags |= SPACE;
+			goto repeat;
+		case '#':
+			flags |= SPECIAL;
+			goto repeat;
+		case '0':
+			flags |= ZEROPAD;
+			goto repeat;
+		}
+
 		/* get field width */
 		field_width = -1;
 		if (is_digit(*fmt))
@@ -363,7 +349,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		/* get the precision */
 		precision = -1;
 		if (*fmt == '.') {
-			++fmt;	
+			++fmt;
 			if (is_digit(*fmt))
 				precision = skip_atoi(&fmt);
 			else if (*fmt == '*') {
@@ -386,7 +372,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 			if (!(flags & LEFT))
 				while (--field_width > 0)
 					*str++ = ' ';
-			*str++ = (unsigned char) va_arg(args, int);
+			*str++ = (unsigned char)va_arg(args, int);
 			while (--field_width > 0)
 				*str++ = ' ';
 			break;
@@ -410,7 +396,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
 		case 'o':
 			str = number(str, va_arg(args, unsigned long), 8,
-				field_width, precision, flags);
+				     field_width, precision, flags);
 			break;
 
 		case 'p':
@@ -419,15 +405,15 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 				flags |= ZEROPAD;
 			}
 			str = number(str,
-				(unsigned long) va_arg(args, void *), 16,
-				field_width, precision, flags);
+				     (unsigned long)va_arg(args, void *), 16,
+				     field_width, precision, flags);
 			break;
 
 		case 'x':
 			flags |= SMALL;
 		case 'X':
 			str = number(str, va_arg(args, unsigned long), 16,
-				field_width, precision, flags);
+				     field_width, precision, flags);
 			break;
 
 		case 'd':
@@ -435,7 +421,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 			flags |= SIGN;
 		case 'u':
 			str = number(str, va_arg(args, unsigned long), 10,
-				field_width, precision, flags);
+				     field_width, precision, flags);
 			break;
 
 		case 'n':
@@ -454,12 +440,12 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		}
 	}
 	*str = '\0';
-	return str-buf;
+	return str - buf;
 }
 
 int printf(char *fmt, ...)
 {
-	char *p;	
+	char *p;
 	int count = 0;
 	va_list arg_ptr;
 	va_start(arg_ptr, fmt);
